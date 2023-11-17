@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ServiceProvider {
+  id          Int    @id @default(autoincrement())
+  name        String
+  email       String @unique
+  phoneNumber String
+
+  service   Service @relation(fields: [serviceId], references: [id])
+  serviceId Int     @unique
+}
+
+model Service {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  location String
+
+  serviceProvider ServiceProvider?
+
+  tours TourService[]
+}
+
+model Tour {
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String
+  startsAt       DateTime
+  price          Int
+  durationInDays Int
+
+  services TourService[]
+  tourists TourTourist[]
+
+  manager   TourManager @relation(fields: [managerId], references: [id])
+  managerId Int         @unique
+}
+
+model TourService {
+  tourId Int
+  tour   Tour @relation(fields: [tourId], references: [id])
+
+  serviceId Int
+  service   Service @relation(fields: [serviceId], references: [id])
+  isPaidFor Boolean
+  price     Int
+
+  @@id([tourId, serviceId])
+}
+
+model TourManager {
+  id          Int    @id @default(autoincrement())
+  name        String
+  email       String @unique
+  phoneNumber String
+
+  tours Tour[]
+}
+
+model Tourist {
+  id          Int    @id @default(autoincrement())
+  name        String
+  phoneNumber String
+
+  tours TourTourist[]
+}
+
+model TourTourist {
+  tourId Int
+  tour   Tour @relation(fields: [tourId], references: [id])
+
+  touristId Int
+  tourist   Tourist @relation(fields: [touristId], references: [id])
+  hasPaid   Boolean
+
+  @@id([tourId, touristId])
+}
